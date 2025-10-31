@@ -40,3 +40,24 @@ impl string {
   
   ...
 }
+```
+
+# Argument passing
+I DO NOT KNOW IF I WANT THIS BUT COULD BE FAST
+
+Function arguments which are bigger than the word size get automatically passed as a pointer
+
+```
+struct big_struct {
+    // ...
+}
+
+fn f(bs: big_struct) -> void {
+
+}
+
+let bs = big_struct{...};
+f(bs); // becomes f(&bs) since bs is not a pointer
+let bsp = &bs;
+f(bsp); // Not allowed since this means bsp allows for modification but the function signature tells us that the original bs will not be modified
+```

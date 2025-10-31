@@ -5,6 +5,11 @@
 #include <stdint.h>
 #include "allocator.h"
 
+typedef struct Token Token;
+
+#define MVECTOR_TYPE Token
+#include "mvector.h"
+
 typedef enum {
     Id, // identifier
     IntLit, // 69
@@ -65,13 +70,13 @@ typedef enum {
     Import, // import
 } TokenType;
 
-typedef struct {
+struct Token {
     TokenType type;
     void * data;
     uint64_t line;
     uint64_t index;
     char * path;
-} Token;
+};
 
 typedef struct {
     int has_error;

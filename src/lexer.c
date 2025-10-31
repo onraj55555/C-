@@ -8,6 +8,10 @@
 
 #define DEBUG 0
 
+/*
+ * Initialise a new lexer
+ * @param self A pointer to a Lexer object
+*/
 void LexerNew(Lexer *self) {
     self->has_error = 0;
     self->tokens = 0;
@@ -15,6 +19,11 @@ void LexerNew(Lexer *self) {
     self->capacity = 0;
 }
 
+/*
+ * Private function, expands the internal vector of tokens
+ * @param self A pointer to a Lexer object
+ * @param a A pointer to an Allocator object
+ */
 void _LexerExpanding(Lexer * self, Allocator * a) {
     if(self->capacity == 0) {
         self->tokens = a->Alloc(sizeof(Token));
@@ -31,14 +40,29 @@ void _LexerExpanding(Lexer * self, Allocator * a) {
     if(self->tokens == NULL) terminate("Failed to allocate tokkens for lexer\n");
     memcpy(self->tokens, old_tokens, self->size * sizeof(Token));
     a->Free(old_tokens);
-    
+
     self->capacity = new_capacity;
 }
 
+/*
+ * Private function, checks if the interal vector of tokens needs expanding
+ * @param self A pointer to a Lexer object
+ * @return 1 if expanding is needed, 0 if not
+ */
 int _LexerNeedExpanding(Lexer * self) {
     return self->size == self->capacity;
 }
 
+/*
+ * Private function, adds a token to the internal vector of tokens
+ * @param self A pointer to a Lexer object
+ * @param type The type of token that this is about
+ * @param data The owned data of the token
+ * @param line The line this tokens can be found on
+ * @param index The index of the token on the line
+ * @param path The file in which the token can be found
+ * @param a A pointer to an Allocator object
+ */
 void _LexerAddToken(Lexer * self, TokenType type, void * data, uint64_t line, uint64_t index, char * path, Allocator * a) {
     if(_LexerNeedExpanding(self)) _LexerExpanding(self, a);
     Token * t = &self->tokens[self->size];
@@ -61,6 +85,14 @@ void _LexerError() {}
 
 // TODO: make manual indexing safe by checking for nulll
 
+/*
+ * Private function, lexes 1 full line of the source file
+ * @param self A pointer to a Lexer object
+ * @param line_data A pointer to a StringSlice object that describes an entire line
+ * @param line The line this is about
+ * @param cu A pointer to the CompilationUnit this line belongs to
+ * @param a A pointer to an Allocator object
+ */
 void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, CompilationUnit * cu, Allocator * a) {
     uint64_t index = 0;
     uint64_t advance = 0;
@@ -313,6 +345,12 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
     }
 }
 
+/*
+ * Lex a full compilation unit and store the output in the internal vector
+ * @param self A pointer to a Lexer object
+ * @param cu A pointer to a CompilationUnit object
+ * @param a A pointer to an Allocator object
+ */
 void LexerTokenise(Lexer *self, CompilationUnit *cu, Allocator * a) {
     uint64_t line = 0;
     while(CompilationUnitHasLine(cu)) {

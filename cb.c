@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define CB_IMPLEMENTATION
 #include "cb.h"
 
@@ -18,7 +19,12 @@ void compile_code(char * main_file, char * output) {
 }
 
 void run_code() {
-    
+    char * output = "c-";
+    compile_code("src/main.c", output);
+    command_t * command = command_init("./c-");
+    command_append(command, "code-examples/1.x");
+    command_execute(command);
+    printf("Command ran\n");
 }
 
 void test_code() {

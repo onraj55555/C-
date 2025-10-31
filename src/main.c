@@ -1,13 +1,10 @@
 #include "compilation_unit.h"
 #include "lexer.h"
 #include "allocator.h"
-#include "util.h"
-#include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 int main() {
-    const char * path = "test-examples/1.cb";
+    char * path = "test-examples/1.cb";
     CompilationUnit * cu = malloc(sizeof(CompilationUnit));
     CompilationUnitFromFile(cu, path);
 
