@@ -24,12 +24,11 @@ typedef enum {
 
 #endif
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-
 #ifdef MVECTOR_TYPE
+
+#include <stdint.h>
+#include "allocator.h"
+
 #define MVECTOR_PREFIX MVECTOR_CONCAT(vector_, MVECTOR_TYPE)
 
 extern int MVECTOR_CONCAT(MVECTOR_PREFIX, _error);
@@ -44,10 +43,10 @@ typedef struct {
 void  MVECTOR_CONCAT(MVECTOR_PREFIX, _new)(MVECTOR_PREFIX * self);
 
 // void vector_int_new_reserve(vector_int * self, int64_t capacity)
-void MVECTOR_CONCAT(MVECTOR_PREFIX, _new_reserve)(MVECTOR_PREFIX * self, int64_t capacity);
+void MVECTOR_CONCAT(MVECTOR_PREFIX, _new_reserve)(MVECTOR_PREFIX * self, int64_t capacity, allocator_t * a);
 
 // int64_t vector_int_pushback(vector_int * self, int * value);
-int64_t MVECTOR_CONCAT(MVECTOR_PREFIX, _pushback)(MVECTOR_PREFIX * self, MVECTOR_TYPE * value);
+int64_t MVECTOR_CONCAT(MVECTOR_PREFIX, _pushback)(MVECTOR_PREFIX * self, MVECTOR_TYPE * value, allocator_t * a);
 
 // void vector_int_popback(vector_int * self, int * dest);
 void MVECTOR_CONCAT(MVECTOR_PREFIX, _popback)(MVECTOR_PREFIX * self, MVECTOR_TYPE * dest);
@@ -62,10 +61,18 @@ MVECTOR_TYPE * MVECTOR_CONCAT(MVECTOR_PREFIX, _get_ref)(MVECTOR_PREFIX * self, i
 void MVECTOR_CONCAT(MVECTOR_PREFIX, _insert_at)(MVECTOR_PREFIX * self, int64_t index, MVECTOR_TYPE * value);
 
 // void vector_int_delete(vector_int * self)
-void MVECTOR_CONCAT(MVECTOR_PREFIX, _delete)(MVECTOR_PREFIX * self);
+void MVECTOR_CONCAT(MVECTOR_PREFIX, _delete)(MVECTOR_PREFIX * self, allocator_t * a);
 
-#ifdef MVECTOR_IMPL
 
+#undef MVECTOR_TYPE
+#undef MVECTOR_PREFIX
+
+#endif
+
+// The actual implementation
+#ifdef MVECTOR_IMPLEMENTATION
+#ifndef _MVECTOR_IMPLEMENTATION
+#define _MVECTOR_IMPLEMENTATION
 int MVECTOR_CONCAT(MVECTOR_PREFIX, _error) = 0;
 
 // void vector_int_new(vector_int * self);
@@ -76,14 +83,14 @@ void MVECTOR_CONCAT(MVECTOR_PREFIX, _new)(MVECTOR_PREFIX * self) {
 }
 
 // void vector_int_new_reserve(vector_int * self, int64_t capacity)
-void MVECTOR_CONCAT(MVECTOR_PREFIX, _new_reserve)(MVECTOR_PREFIX * self, int64_t capacity) {
+void MVECTOR_CONCAT(MVECTOR_PREFIX, _new_reserve)(MVECTOR_PREFIX * self, int64_t capacity, allocator_t * a) {
     if(capacity < 0) {
         MVECTOR_CONCAT(MVECTOR_PREFIX, _error) = invalid_value;
         return;
     }
 
-    self->data = (MVECTOR_TYPE *) malloc(capacity * sizeof(MVECTOR_TYPE));
-    
+    self->data = (MVECTOR_TYPE *) allocator_alloc(a, capacity * sizeof(MVECTOR_TYPE));
+
     if(self->data == 0) {
         MVECTOR_CONCAT(MVECTOR_PREFIX, _error) = alloc;
         return;
@@ -94,9 +101,9 @@ void MVECTOR_CONCAT(MVECTOR_PREFIX, _new_reserve)(MVECTOR_PREFIX * self, int64_t
 }
 
 // int64_t vector_int_pushback(vector_int * self, int * value);
-int64_t MVECTOR_CONCAT(MVECTOR_PREFIX, _pushback)(MVECTOR_PREFIX * self, MVECTOR_TYPE * value) {
+int64_t MVECTOR_CONCAT(MVECTOR_PREFIX, _pushback)(MVECTOR_PREFIX * self, MVECTOR_TYPE * value, allocator_t * a) {
     if(self->capacity == 0) {
-        self->data = (MVECTOR_TYPE *)malloc(1 * sizeof(MVECTOR_TYPE));
+        self->data = (MVECTOR_TYPE *) allocator_alloc(a, 1 * sizeof(MVECTOR_TYPE));
 
         if(self->data == 0) {
             MVECTOR_CONCAT(MVECTOR_PREFIX, _error) = alloc;
@@ -104,7 +111,7 @@ int64_t MVECTOR_CONCAT(MVECTOR_PREFIX, _pushback)(MVECTOR_PREFIX * self, MVECTOR
         }
         self->capacity = 1;
     } else if(self->size == self->capacity) {
-        MVECTOR_TYPE * temp = (MVECTOR_TYPE *)realloc(self->data, 2 * self->capacity * sizeof(MVECTOR_TYPE));
+        MVECTOR_TYPE * temp = (MVECTOR_TYPE *) allocator_realloc(a, self->data, 2 * self->capacity * sizeof(MVECTOR_TYPE));
 
         if(temp == 0) {
             MVECTOR_CONCAT(MVECTOR_PREFIX, _error) = alloc;
@@ -180,15 +187,11 @@ void MVECTOR_CONCAT(MVECTOR_PREFIX, _insert_at)(MVECTOR_PREFIX * self, int64_t i
 }
 
 // void vector_int_delete(vector_int * self)
-void MVECTOR_CONCAT(MVECTOR_PREFIX, _delete)(MVECTOR_PREFIX * self) {
-    free(self->data);
+void MVECTOR_CONCAT(MVECTOR_PREFIX, _delete)(MVECTOR_PREFIX * self, allocator_t * a) {
+    allocator_free(a, self->data);
     self->data = 0;
     self->size = 0;
     self->capacity = 0;
 }
 #endif
-
-#undef MVECTOR_TYPE
-#undef MVECTOR_PREFIX
-
 #endif

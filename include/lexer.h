@@ -1,14 +1,9 @@
 #ifndef LEXER_H_
 #define LEXER_H_
 
+#include "allocator.h"
 #include "compilation_unit.h"
 #include <stdint.h>
-#include "allocator.h"
-
-typedef struct Token Token;
-
-#define MVECTOR_TYPE Token
-#include "mvector.h"
 
 typedef enum {
     Id, // identifier
@@ -70,23 +65,26 @@ typedef enum {
     Import, // import
 } TokenType;
 
-struct Token {
+typedef struct {
     TokenType type;
     void * data;
     uint64_t line;
     uint64_t index;
     char * path;
-};
+} Token;
+
+#define MVECTOR_TYPE Token
+#include "mvector.h"
 
 typedef struct {
     int has_error;
-    Token * tokens;
+    vector_Token tokens;
     uint64_t size;
     uint64_t capacity;
 } Lexer;
 
 void LexerNew(Lexer * self);
-void LexerTokenise(Lexer * self, CompilationUnit * cu, Allocator * a);
+void LexerTokenise(Lexer * self, CompilationUnit * cu, allocator_t * a);
 void LexerPrint(Lexer * self);
 void LexerPrintInitialisation(Lexer * self);
 

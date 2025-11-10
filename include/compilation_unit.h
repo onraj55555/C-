@@ -39,8 +39,8 @@ struct CompilationUnit {
 
 void CompilationUnitFromString(CompilationUnit * self, char * name, char * s);
 void CompilationUnitFromFile(CompilationUnit * self, char * path);
-StringSlice CompilationUnitGetLine(CompilationUnit * self, Allocator * a);;
+StringSlice CompilationUnitGetLine(CompilationUnit * self, allocator_t * a);;
 int CompilationUnitHasLine(CompilationUnit * self);
-void CompilationUnitDelete(CompilationUnit * self, Allocator * a);
+void CompilationUnitDelete(CompilationUnit * self, allocator_t * a);
 
 #endif
