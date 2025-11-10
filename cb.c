@@ -14,22 +14,22 @@ void compile_code(char * main_file, char * output) {
     command_append(command, "src/util.c");
     command_set_output_file(command, output);
     command_execute(command);
+    command_has_exited_normally(command);
 }
 
 void run_code() {
-    char * output = "c-";
-    printf("Compiling code...\n");
+    char * output = "build/c-";
     compile_code("src/main.c", output);
-    printf("Code compiled!\n");
-    command_t * command = command_init("./c-");
+    command_t * command = command_init(output);
     command_append(command, "code-examples/1.x");
-    printf("Executing ./c-...\n");
     command_execute(command);
-    printf("Code ran\n");
 }
 
 void test_code() {
-
+    char * output = "build/test";
+    compile_code("test/test.c", output);
+    command_t * command = command_init(output);
+    command_execute(command);
 }
 
 int main(int argc, char ** argv) {

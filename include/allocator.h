@@ -29,6 +29,7 @@ static inline void allocator_free(allocator_t * self, void * p) {
 }
 #endif
 
+
 #ifdef ALLOCATOR_HEAP_ALLOCATOR
 #ifndef _ALLOCATOR_HEAP_ALLOCATOR
 #define _ALLOCATOR_HEAP_ALLOCATOR

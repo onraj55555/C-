@@ -21,6 +21,8 @@ typedef struct option_t option_t;
 static inline void cb_rebuild_on_change(char * source, char ** argv);
 
 struct command_t {
+    int status;
+    int is_executed;
     char ** args;
     uint64_t size;
     uint64_t capacity;
@@ -41,6 +43,9 @@ static inline void command_append_n(command_t *cmd, char *arg0, ...);
 // Executes the command in a separate process
 static inline void command_execute(command_t *cmd);
 
+// Checks if the command has exited with the desired exit code, otherwise panic
+static inline void command_has_exited_with_code(command_t *cmd, int exit_code);
+
 // Equivalent to command_append(cmd, path)
 static inline void command_add_source_file(command_t * cmd, char * path);
 
@@ -55,6 +60,12 @@ static inline void command_enable_all_errors(command_t * cmd);
 
 // Equivalent to command_append_n(cmd, "-l", name, NULL);
 static inline void command_add_dynamic_library(command_t * cmd, char * name);
+
+// Checks if the command has exited with exit code 0
+static inline void command_has_exited_normally(command_t *cmd);
+
+// Returns the exit code of the executed command
+static inline int command_get_exit_code(command_t * cmd);
 
 struct option_t {
     char * flag;
@@ -87,6 +98,7 @@ static inline time_t _last_modified(char * file);
 static inline void _panic(const char * fmt, ...) {
     va_list args;
     va_start(args, fmt);
+    fprintf(stderr, "[PANIC] ");
     vfprintf(stderr, fmt, args);
     fprintf(stderr, "\n");
     exit(EXIT_FAILURE);
@@ -240,6 +252,8 @@ static inline command_t * command_init(char * arg) {
     cmd->args = NULL;
     cmd->size = 0;
     cmd->capacity = 0;
+    cmd->status = 0;
+    cmd->is_executed = 0;
     // Assemble full path
     char * full_path = _assemble_full_path(arg);
     debug_print("full_path=%s\n", full_path);
@@ -251,7 +265,7 @@ static inline command_t * command_init(char * arg) {
 
 static inline void command_deinit(command_t * cmd) {
     debug_print("starting deinit\n");
-    
+
     if(cmd->args) {
         // FIX: this gives error "free(): invalid pointer", but args[0] is allocated using malloc
         //free(cmd->args[0]);
@@ -352,13 +366,13 @@ static inline void command_execute(command_t *cmd) {
         }
     } else {
         debug_print("parent\n");
-        waitpid(p, NULL, 0);
+        waitpid(p, &cmd->status, 0);
         debug_print("before free\n");
         free(assembled);
         debug_print("after free\n");
+        cmd->is_executed = 1;
     }
-    debug_print("done\n");
-
+    debug_print("finished\n");
 }
 
 static inline long _last_modified(char *file) {
@@ -421,6 +435,26 @@ void cb_rebuild_on_change(char * source, char ** argv) {
         debug_print("full_path=%s\n", full_path);
         execve(full_path, argv, environ);
     }
+}
+
+static inline void command_has_exited_with_code(command_t *cmd, int exit_code) {
+    if(!cmd->is_executed) _panic("Command has not been executed yet!\n");
+    int exit_status = WEXITSTATUS(cmd->status);
+    if(exit_code != exit_status) {
+        _panic("Child exited abnormally with exit code %d!\n", exit_status);
+    }
+}
+
+static inline void command_has_exited_normally(command_t *cmd) {
+    command_has_exited_with_code(cmd, 0);
+}
+
+static inline int command_get_exit_code(command_t *cmd) {
+    if(!cmd->is_executed) {
+        return -1;
+    }
+
+    return WEXITSTATUS(cmd->status);
 }
 
 #endif

@@ -1,3 +1,4 @@
+#define MVECTOR_IMPLEMENTATION
 #include "lexer.h"
 #include <stdlib.h>
 #include "util.h"
