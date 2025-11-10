@@ -5,7 +5,10 @@
 #include <stdlib.h>
 #include "string_builder.h"
 
-StringSlice _CompilationUnitFileGetLine(CompilationUnit * self, Allocator * a) {
+#define ALLOCATOR_HEAP_ALLOCATOR
+#include "allocator.h"
+
+StringSlice _CompilationUnitFileGetLine(CompilationUnit * self, allocator_t * a) {
     StringBuilderReset(&self->sb);
 
     while(1) {
@@ -24,7 +27,7 @@ StringSlice _CompilationUnitFileGetLine(CompilationUnit * self, Allocator * a) {
     return StringBuilderReturnSlice(&self->sb);
 }
 
-StringSlice _CompilationUnitStringGetLine(CompilationUnit * self, Allocator * a) {
+StringSlice _CompilationUnitStringGetLine(CompilationUnit * self, allocator_t * a) {
     StringBuilderReset(&self->sb);
 
     while(1) {
@@ -75,7 +78,7 @@ void CompilationUnitFromFile(CompilationUnit *self, char *path) {
     self->data.file_data.file = f;
 }
 
-StringSlice CompilationUnitGetLine(CompilationUnit *self, Allocator * a) {
+StringSlice CompilationUnitGetLine(CompilationUnit *self, allocator_t * a) {
     switch(self->type) {
         case COMPILATION_UNIT_FILE: return _CompilationUnitFileGetLine(self, a); break;
         case COMPILATION_UNIT_STRING: return _CompilationUnitStringGetLine(self, a); break;
@@ -86,7 +89,7 @@ int CompilationUnitHasLine(CompilationUnit *self) {
     return self->eof == 0;
 }
 
-void CompilationUnitDelete(CompilationUnit *self, Allocator *a) {
+void CompilationUnitDelete(CompilationUnit *self, allocator_t *a) {
     StringBuilderDelete(&self->sb, a);
     if(self->type == COMPILATION_UNIT_FILE) fclose(self->data.file_data.file);
 }

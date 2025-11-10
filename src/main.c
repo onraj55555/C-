@@ -1,5 +1,6 @@
 #include "compilation_unit.h"
 #include "lexer.h"
+#define ALLOCATOR_HEAP_ALLOCATOR
 #include "allocator.h"
 #include <stdlib.h>
 
@@ -8,8 +9,8 @@ int main() {
     CompilationUnit * cu = malloc(sizeof(CompilationUnit));
     CompilationUnitFromFile(cu, path);
 
-    Allocator * a = malloc(sizeof(Allocator));
-    AllocatorHeapAllocatorNew(a);
+    allocator_t * a = malloc(sizeof(allocator_t));
+    allocator_new_heap_allocator(a);
 
     Lexer * l = malloc(sizeof(Lexer));
     LexerNew(l);

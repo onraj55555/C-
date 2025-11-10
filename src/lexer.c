@@ -14,7 +14,7 @@
 */
 void LexerNew(Lexer *self) {
     self->has_error = 0;
-    self->tokens = 0;
+    vector_Token_new(&self->tokens);
     self->size = 0;
     self->capacity = 0;
 }
@@ -24,6 +24,7 @@ void LexerNew(Lexer *self) {
  * @param self A pointer to a Lexer object
  * @param a A pointer to an Allocator object
  */
+/*
 void _LexerExpanding(Lexer * self, Allocator * a) {
     if(self->capacity == 0) {
         self->tokens = a->Alloc(sizeof(Token));
@@ -43,15 +44,18 @@ void _LexerExpanding(Lexer * self, Allocator * a) {
 
     self->capacity = new_capacity;
 }
+*/
 
 /*
  * Private function, checks if the interal vector of tokens needs expanding
  * @param self A pointer to a Lexer object
  * @return 1 if expanding is needed, 0 if not
  */
+/*
 int _LexerNeedExpanding(Lexer * self) {
     return self->size == self->capacity;
 }
+*/
 
 /*
  * Private function, adds a token to the internal vector of tokens
@@ -63,16 +67,14 @@ int _LexerNeedExpanding(Lexer * self) {
  * @param path The file in which the token can be found
  * @param a A pointer to an Allocator object
  */
-void _LexerAddToken(Lexer * self, TokenType type, void * data, uint64_t line, uint64_t index, char * path, Allocator * a) {
-    if(_LexerNeedExpanding(self)) _LexerExpanding(self, a);
-    Token * t = &self->tokens[self->size];
-    t->type = type;
-    t->data = data;
-    t->line = line;
-    t->index = index;
-    t->path = path;
-
-    self->size = self->size + 1;
+void _LexerAddToken(Lexer * self, TokenType type, void * data, uint64_t line, uint64_t index, char * path, allocator_t * a) {
+    Token t = { 0 };
+    t.type = type;
+    t.data = data;
+    t.line = line;
+    t.index = index;
+    t.path = path;
+    vector_Token_pushback(&self->tokens, &t, a);
 }
 
 void _LexerError() {}
@@ -93,7 +95,7 @@ void _LexerError() {}
  * @param cu A pointer to the CompilationUnit this line belongs to
  * @param a A pointer to an Allocator object
  */
-void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, CompilationUnit * cu, Allocator * a) {
+void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, CompilationUnit * cu, allocator_t * a) {
     uint64_t index = 0;
     uint64_t advance = 0;
     TokenType type;
@@ -249,7 +251,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                     StringBuilderPushChar(&sb, c, a);
                     c = StringSliceAt(line_data, index + sb.size);
                 }
-                
+
                 // TODO: handle error
                 if(has_dot > 1) {
                     _LexerError();
@@ -300,7 +302,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
 
                 data = StringBuilderBuild(&sb, a);
 
-                debug("Data %s", data);
+                debug("Data %s", (char *)data);
 
                 int is_id = 0;
 
@@ -328,7 +330,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 else if(strcmp("import", data) == 0) { type = Import; advance = 6; }
                 else { type = Id; is_id = 1; advance = sb.size; }
 
-                if(!is_id) { a->Free(data); data = 0; }
+                if(!is_id) { allocator_free(a, data); data = 0; }
             } break;
 
             default: {
@@ -351,7 +353,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
  * @param cu A pointer to a CompilationUnit object
  * @param a A pointer to an Allocator object
  */
-void LexerTokenise(Lexer *self, CompilationUnit *cu, Allocator * a) {
+void LexerTokenise(Lexer *self, CompilationUnit *cu, allocator_t * a) {
     uint64_t line = 0;
     while(CompilationUnitHasLine(cu)) {
         StringSlice line_data = CompilationUnitGetLine(cu, a);
@@ -430,8 +432,8 @@ void LexerPrint(Lexer *self) {
     StringBuilderNew(&sb);
 
     for(int i = 0; i < self->size; i++) {
-        Token * token = &self->tokens[i];
-        
+        Token * token = vector_Token_get_ref(&self->tokens, i);
+
         char * data = token->data;
         char * repr = _TokenTypeToString(token->type);
         if(data) {
@@ -445,7 +447,7 @@ void LexerPrint(Lexer *self) {
 void LexerPrintInitialisation(Lexer *self) {
     int i = 0;
     for(; i < self->size - 1; i++) {
-        Token * token = &self->tokens[i];
+        Token * token = vector_Token_get_ref(&self->tokens, i);
         char * data = token->data;
         char * repr = _TokenTypeToString(token->type);
 
@@ -453,7 +455,7 @@ void LexerPrintInitialisation(Lexer *self) {
         else printf("{.type = %s, .data = \"%s\", .line = %d, .index = %d, .path = \"%s\"}, ", repr, data, token->line, token->index, token->path);
     }
 
-    Token * token = &self->tokens[i];
+    Token * token = vector_Token_get_ref(&self->tokens, i);
     char * data = token->data;
     char * repr = _TokenTypeToString(token->type);
 
