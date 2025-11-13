@@ -1,3 +1,4 @@
+#include <stdio.h>
 #define MVECTOR_IMPLEMENTATION
 #include "lexer.h"
 #include <stdlib.h>
@@ -6,6 +7,7 @@
 #include "string_builder.h"
 #include "ctype.h"
 #include "string_slice.h"
+#include <stdarg.h>
 
 #define DEBUG 0
 
@@ -16,47 +18,7 @@
 void LexerNew(Lexer *self) {
     self->has_error = 0;
     vector_Token_new(&self->tokens);
-    self->size = 0;
-    self->capacity = 0;
 }
-
-/*
- * Private function, expands the internal vector of tokens
- * @param self A pointer to a Lexer object
- * @param a A pointer to an Allocator object
- */
-/*
-void _LexerExpanding(Lexer * self, Allocator * a) {
-    if(self->capacity == 0) {
-        self->tokens = a->Alloc(sizeof(Token));
-        if(self->tokens == NULL) terminate("Failed to initially allocate tokens for lexer\n");
-
-        self->capacity = 1;
-        return;
-    }
-
-    uint64_t new_capacity = self->capacity * 2;
-    Token * old_tokens = self->tokens;
-
-    self->tokens = a->Alloc(new_capacity * sizeof(Token));
-    if(self->tokens == NULL) terminate("Failed to allocate tokkens for lexer\n");
-    memcpy(self->tokens, old_tokens, self->size * sizeof(Token));
-    a->Free(old_tokens);
-
-    self->capacity = new_capacity;
-}
-*/
-
-/*
- * Private function, checks if the interal vector of tokens needs expanding
- * @param self A pointer to a Lexer object
- * @return 1 if expanding is needed, 0 if not
- */
-/*
-int _LexerNeedExpanding(Lexer * self) {
-    return self->size == self->capacity;
-}
-*/
 
 /*
  * Private function, adds a token to the internal vector of tokens
@@ -78,7 +40,15 @@ void _LexerAddToken(Lexer * self, TokenType type, void * data, uint64_t line, ui
     vector_Token_pushback(&self->tokens, &t, a);
 }
 
-void _LexerError() {}
+void _LexerError(Lexer * self, const char * path, uint64_t line, uint64_t index, const char * fmt, ...) {
+    va_list ap;
+    va_start(ap, fmt);
+    fprintf(stderr, "Lexer error at %s[%ld:%ld]: ", path, line, index);
+    vfprintf(stderr, fmt, ap);
+    fprintf(stderr, "\n");
+    va_end(ap);
+
+}
 
 // 13/09/2025 22:18
 // This can be done wayyyyyy more efficient by just assigning a TokenType variable and writing the function call once
@@ -100,6 +70,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
     uint64_t index = 0;
     uint64_t advance = 0;
     TokenType type;
+    int error = 0;
     void * data = NULL;
     char * path = cu->path;
 
@@ -220,9 +191,10 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                         c = StringSliceAt(line_data, index + sb.size);
                     }
 
-                    // TODO: handle error
                     if(has_dot > 1) {
-                        _LexerError();
+                        _LexerError(self, path, line, index, "too many decimal places in float literal, counted %d", has_dot);
+                        self->has_error = 1;
+                        error = 1;
                     } else if(has_dot == 1) {
                         type = FloatLit;
                         data = StringBuilderBuild(&sb, a);
@@ -253,9 +225,10 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                     c = StringSliceAt(line_data, index + sb.size);
                 }
 
-                // TODO: handle error
                 if(has_dot > 1) {
-                    _LexerError();
+                    _LexerError(self, path, line, index, "too many decimal places in float literal, counted %d", has_dot);
+                    self->has_error = 1;
+                    error = 1;
                 } else if(has_dot == 1) {
                     type = FloatLit;
                     data = StringBuilderBuild(&sb, a);
@@ -292,7 +265,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 StringBuilder sb;
                 StringBuilderNew(&sb);
                 StringBuilderPushChar(&sb, c, a);
-                
+
                 c = StringSliceAt(line_data, index + sb.size);
                 while(isalnum(c) || c == '_') {
                     StringBuilderPushChar(&sb, c, a);
@@ -335,11 +308,15 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
             } break;
 
             default: {
-                printf("Unknown char: \"%c\", %d\n", c, c);
+                // TODO: handle error
+                _LexerError(self, path, line, index, "unknown char '%c' (%d)", c, c);
+                self->has_error = 1;
+                error = 1;
             }
         }
 
-        _LexerAddToken(self, type, data, line, index, cu->path, a);
+        if(!error) _LexerAddToken(self, type, data, line, index, cu->path, a);
+        error = 0;
 
         index = index + advance;
 
@@ -432,7 +409,7 @@ void LexerPrint(Lexer *self) {
     StringBuilder sb;
     StringBuilderNew(&sb);
 
-    for(int i = 0; i < self->size; i++) {
+    for(int i = 0; i < self->tokens.size; i++) {
         Token * token = vector_Token_get_ref(&self->tokens, i);
 
         char * data = token->data;
@@ -447,7 +424,7 @@ void LexerPrint(Lexer *self) {
 
 void LexerPrintInitialisation(Lexer *self) {
     int i = 0;
-    for(; i < self->size - 1; i++) {
+    for(; i < self->tokens.size - 1; i++) {
         Token * token = vector_Token_get_ref(&self->tokens, i);
         char * data = token->data;
         char * repr = _TokenTypeToString(token->type);

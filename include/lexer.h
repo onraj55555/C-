@@ -79,8 +79,6 @@ typedef struct {
 typedef struct {
     int has_error;
     vector_Token tokens;
-    uint64_t size;
-    uint64_t capacity;
 } Lexer;
 
 void LexerNew(Lexer * self);

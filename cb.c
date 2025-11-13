@@ -17,11 +17,11 @@ void compile_code(char * main_file, char * output) {
     command_has_exited_normally(command);
 }
 
-void run_code() {
+void run_code(char * example) {
     char * output = "build/c-";
     compile_code("src/main.c", output);
     command_t * command = command_init(output);
-    command_append(command, "code-examples/1.x");
+    command_append(command, example);
     command_execute(command);
 }
 
@@ -35,7 +35,11 @@ void test_code() {
 int main(int argc, char ** argv) {
     cb_rebuild_on_change(__FILE__, argv);
     parse_arguments(argc, argv);
-    if(has_argument_at_intex("run", 1)) run_code();
+    char * example = get_argument_from_flag("-f");
+    printf("%s\n", example);
+    if(!example) example = "code-examples/1.x";
+    printf("%s\n", example);
+    if(has_argument_at_intex("run", 1)) run_code(example);
     else if(has_argument_at_intex("test", 1)) test_code();
     return 0;
 }
