@@ -110,7 +110,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
 
             // Double width tokens
             case '&': {
-                if (StringSliceAt(line_data, index) == '&') {
+                if (StringSliceAt(line_data, index + 1) == '&') {
                     type = AndAnd;
                     advance = 2;
                 } else {
@@ -119,7 +119,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 }
             } break;
             case '|': {
-                if (StringSliceAt(line_data, index) == '|') {
+                if (StringSliceAt(line_data, index + 1) == '|') {
                     type = OrOr;
                     advance = 2;
                 } else {
@@ -128,7 +128,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 }
             } break;
             case '!': {
-                if (StringSliceAt(line_data, index) == '=') {
+                if (StringSliceAt(line_data, index + 1) == '=') {
                     type = BangEq;
                     advance = 2;
                 } else {
@@ -137,7 +137,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 }
             } break;
             case '=': {
-                if (StringSliceAt(line_data, index) == '=') {
+                if (StringSliceAt(line_data, index + 1) == '=') {
                     type = EqEq;
                     advance = 2;
                 } else {
@@ -146,10 +146,10 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 }
             } break;
             case '<': {
-                if (StringSliceAt(line_data, index) == '=') {
+                if (StringSliceAt(line_data, index + 1) == '=') {
                     type = LtEq;
                     advance = 2;
-                } else if (StringSliceAt(line_data, index) == '<') {
+                } else if (StringSliceAt(line_data, index + 1) == '<') {
                     type = LtLt;
                     advance = 2;
                 }
@@ -159,10 +159,10 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 }
             } break;
             case '>': {
-                if (StringSliceAt(line_data, index) == '=') {
+                if (StringSliceAt(line_data, index + 1) == '=') {
                     type = GtEq;
                     advance = 2;
-                } else if (StringSliceAt(line_data, index) == '>') {
+                } else if (StringSliceAt(line_data, index + 1) == '>') {
                     type = GtGt;
                     advance = 2;
                 }
@@ -174,10 +174,10 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
 
             // '-', '->' or negative numeric literals
             case '-': {
-                if(StringSliceAt(line_data, index) == '>') {
+                if(StringSliceAt(line_data, index + 1) == '>') {
                     type = Arrow;
                     advance = 2;
-                } else if(isdigit(StringSliceAt(line_data, index))) {
+                } else if(isdigit(StringSliceAt(line_data, index + 1))) {
                     // Note: advance does not need to be kept because sb.size will be used for that
                     StringBuilder sb;
                     StringBuilderNew(&sb);
@@ -302,6 +302,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 else if(strcmp("bool", data) == 0) { type = Bool; advance = 4; }
                 else if(strcmp("package", data) == 0) { type = Pack; advance = 7; }
                 else if(strcmp("import", data) == 0) { type = Import; advance = 6; }
+                else if(strcmp("void", data) == 0) { type = Void; advance = 4; }
                 else { type = Id; is_id = 1; advance = sb.size; }
 
                 if(!is_id) { allocator_free(a, data); data = 0; }

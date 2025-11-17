@@ -57,6 +57,7 @@ typedef enum {
     F32, // f32
     F64, // f64
     Bool, // bool
+    Void, // void
     Hash, // #
     USize, // usize
     ISize, // isize
