@@ -6,64 +6,65 @@
 #include <stdint.h>
 
 typedef enum {
-    Id, // identifier
-    IntLit, // 69
-    FloatLit, // 3.14
-    StringLit, // "abc"
-    Fn, // fn
-    Colon, // :
-    Comma, // ,
-    LBra, // (
-    RBra, // )
-    LCur, // {
-    RCur, // }
-    LAng, // [
-    RAng, // ]
-    Arrow, // ->
-    Plus, // +
-    Min, // -
-    Star, // *
-    Slash, // /
-    Perc, // %
-    Dot, // .
-    And, // &
-    Or, // |
-    AndAnd, // &&
-    OrOr, // ||
-    LtLt, // <<
-    GtGt, // >>
-    Eq, // =
-    EqEq, // ==
-    Lt, // <
-    Gt, // >
-    LtEq, // <=
-    GtEq, // >=
-    Bang, // !
-    BangEq, // !=
-    If, // if
-    Else, // else
-    While, // while
-    For, // for
-    Ret, // return
-    Struct, // struct
-    I8, // i8
-    I16, // i16
-    I32, // i32
-    I64, // i64
-    U8, // u8
-    U16, // u16
-    U32, // u32
-    U64, // u64
-    F32, // f32
-    F64, // f64
-    Bool, // bool
-    Void, // void
-    Hash, // #
-    USize, // usize
-    ISize, // isize
-    DotComma, // ;
-    Pack, // package;
-    Import, // import
+    L_Id, // identifier
+    L_IntLit, // 69
+    L_FloatLit, // 3.14
+    L_StringLit, // "abc"
+    L_Fn, // fn
+    L_Colon, // :
+    L_Comma, // ,
+    L_LBra, // (
+    L_RBra, // )
+    L_LCur, // {
+    L_RCur, // }
+    L_LAng, // [
+    L_RAng, // ]
+    L_Arrow, // ->
+    L_Plus, // +
+    L_Min, // -
+    L_Star, // *
+    L_Slash, // /
+    L_Perc, // %
+    L_Dot, // .
+    L_And, // &
+    L_Or, // |
+    L_AndAnd, // &&
+    L_OrOr, // ||
+    L_LtLt, // <<
+    L_GtGt, // >>
+    L_Eq, // =
+    L_EqEq, // ==
+    L_Lt, // <
+    L_Gt, // >
+    L_LtEq, // <=
+    L_GtEq, // >=
+    L_Bang, // !
+    L_BangEq, // !=
+    L_If, // if
+    L_Else, // else
+    L_While, // while
+    L_For, // for
+    L_Ret, // return
+    L_Struct, // struct
+    L_I8, // i8
+    L_I16, // i16
+    L_I32, // i32
+    L_I64, // i64
+    L_U8, // u8
+    L_U16, // u16
+    L_U32, // u32
+    L_U64, // u64
+    L_F32, // f32
+    L_F64, // f64
+    L_Bool, // bool
+    L_Void, // void
+    L_Hash, // #
+    L_USize, // usize
+    L_ISize, // isize
+    L_DotComma, // ;
+    L_Mod, // mod
+    L_Use, // use
+    L_Let, // let
 } TokenType;
 
 typedef struct {
@@ -74,12 +75,12 @@ typedef struct {
     char * path;
 } Token;
 
-#define MVECTOR_TYPE Token
-#include "mvector.h"
+#define MDA_TYPE Token
+#include "mda.h"
 
 typedef struct {
     int has_error;
-    vector_Token tokens;
+    da_Token tokens;
 } Lexer;
 
 void LexerNew(Lexer * self);

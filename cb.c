@@ -13,6 +13,8 @@ void compile_code(char * main_file, char * output) {
     command_append(command, "src/string_slice.c");
     command_append(command, "src/util.c");
     command_append(command, "src/parser.c");
+    command_append(command, "src/ast.c");
+    command_enable_all_errors(command);
     command_set_output_file(command, output);
     command_execute(command);
     command_has_exited_normally(command);

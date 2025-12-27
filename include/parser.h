@@ -3,6 +3,7 @@
 
 #include "lexer.h"
 #include "allocator.h"
+#include "ast.h"
 
 typedef struct Parser Parser;
 
