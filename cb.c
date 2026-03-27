@@ -12,9 +12,12 @@ void compile_code(char * main_file, char * output) {
     command_append(command, "src/string_builder.c");
     command_append(command, "src/string_slice.c");
     command_append(command, "src/util.c");
+    command_append(command, "src/dynamic_array.c");
     command_append(command, "src/parser.c");
     command_append(command, "src/ast.c");
-    command_enable_all_errors(command);
+    command_append(command, "src/da_string.c");
+    command_append(command, "-ggdb");
+    //command_enable_all_errors(command);
     command_set_output_file(command, output);
     command_execute(command);
     command_has_exited_normally(command);
@@ -43,5 +46,6 @@ int main(int argc, char ** argv) {
     //printf("%s\n", example);
     if(has_argument_at_intex("run", 1)) run_code();
     else if(has_argument_at_intex("test", 1)) test_code();
+    else compile_code("src/main.c", "build/main");
     return 0;
 }

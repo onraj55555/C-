@@ -7,7 +7,7 @@
 
 int main() {
     //char * path = "test-examples/1.cb";
-    char * path = "code-examples/3.cll";
+    char * path = "code-examples/4.cll";
     CompilationUnit * cu = malloc(sizeof(CompilationUnit));
     CompilationUnitFromFile(cu, path);
 

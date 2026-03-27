@@ -4,6 +4,7 @@
 #include "allocator.h"
 #include "compilation_unit.h"
 #include <stdint.h>
+#include "dynamic_array.h"
 
 typedef enum {
     L_Id, // identifier
@@ -65,6 +66,7 @@ typedef enum {
     L_Mod, // mod
     L_Use, // use
     L_Let, // let
+    L_EOF, // end if the unput
 } TokenType;
 
 typedef struct {
@@ -75,8 +77,7 @@ typedef struct {
     char * path;
 } Token;
 
-#define MDA_TYPE Token
-#include "mda.h"
+typedef DA_CREATE_STRUCT(da_Token, Token) da_Token;
 
 typedef struct {
     int has_error;

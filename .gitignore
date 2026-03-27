@@ -2,3 +2,4 @@
 build/cb
 cb
 build/
+.gitignore

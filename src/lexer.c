@@ -1,6 +1,4 @@
 #include <stdio.h>
-#define MDA_IMPLEMENTATION
-#include "lexer.h"
 #include <stdlib.h>
 #include "util.h"
 #include <string.h>
@@ -8,6 +6,8 @@
 #include "ctype.h"
 #include "string_slice.h"
 #include <stdarg.h>
+
+#include "lexer.h"
 
 #define DEBUG 0
 
@@ -17,7 +17,8 @@
 */
 void LexerNew(Lexer *self) {
     self->has_error = 0;
-    da_Token_new(&self->tokens);
+    DA_INIT(&self->tokens);
+    //da_Token_new(&self->tokens);
 }
 
 /*
@@ -37,7 +38,8 @@ void _LexerAddToken(Lexer * self, TokenType type, void * data, uint64_t line, ui
     t.line = line;
     t.index = index;
     t.path = path;
-    da_Token_pushback(&self->tokens, &t, a);
+    DA_PUSHBACK(&self->tokens, t, a);
+    //da_Token_pushback(&self->tokens, &t, a);
 }
 
 void _LexerError(Lexer * self, const char * path, uint64_t line, uint64_t index, const char * fmt, ...) {
@@ -303,6 +305,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
                 else if(strcmp("mod", data) == 0) { type = L_Mod; advance = 7; }
                 else if(strcmp("use", data) == 0) { type = L_Use; advance = 6; }
                 else if(strcmp("void", data) == 0) { type = L_Void; advance = 4; }
+                else if(strcmp("let", data) == 0) { type = L_Let; advance = 3; }
                 else { type = L_Id; is_id = 1; advance = sb.size; }
 
                 if(!is_id) { allocator_free(a, data); data = 0; }
@@ -339,6 +342,14 @@ void LexerTokenise(Lexer *self, CompilationUnit *cu, allocator_t * a) {
         _LexerLexLine(self, &line_data, line, cu, a);
         line = line + 1;
     }
+    Token eof = { 0 };
+    eof.type = L_EOF;
+    eof.data = 0;
+    eof.path = cu->path;
+    eof.line = 0;
+    eof.index = 0;
+    DA_PUSHBACK(&self->tokens, eof, a);
+    //da_Token_pushback(&self->tokens, &eof, a);
 }
 
 char * _TokenTypeToString(TokenType type) {
@@ -401,6 +412,8 @@ char * _TokenTypeToString(TokenType type) {
         case L_DotComma: repr = "DotComma"; break;
         case L_Use: repr = "Use"; break;
         case L_Mod: repr = "Mod"; break;
+        case L_EOF: repr = "EOF"; break;
+        case L_Let: repr = "Let"; break;
         default: terminate("LexerPrint: unexpected token"); break;
     }
     return repr;
@@ -411,7 +424,7 @@ void LexerPrint(Lexer *self) {
     StringBuilderNew(&sb);
 
     for(int i = 0; i < self->tokens.size; i++) {
-        Token * token = da_Token_get_ref(&self->tokens, i);
+        Token * token = &self->tokens.data[i];
 
         char * data = token->data;
         char * repr = _TokenTypeToString(token->type);
@@ -426,7 +439,7 @@ void LexerPrint(Lexer *self) {
 void LexerPrintInitialisation(Lexer *self) {
     int i = 0;
     for(; i < self->tokens.size - 1; i++) {
-        Token * token = da_Token_get_ref(&self->tokens, i);
+        Token * token = &self->tokens.data[i];
         char * data = token->data;
         char * repr = _TokenTypeToString(token->type);
 
@@ -434,7 +447,7 @@ void LexerPrintInitialisation(Lexer *self) {
         else printf("{.type = %s, .data = \"%s\", .line = %lu, .index = %lu, .path = \"%s\"}, ", repr, data, token->line, token->index, token->path);
     }
 
-    Token * token = da_Token_get_ref(&self->tokens, i);
+    Token * token = &self->tokens.data[i];
     char * data = token->data;
     char * repr = _TokenTypeToString(token->type);
 

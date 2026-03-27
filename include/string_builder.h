@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include "string_slice.h"
+#include "dynamic_array.h"
 
 typedef struct {
     char * data;
