@@ -55,7 +55,6 @@ Token * _ParserPeek(Parser * self, Lexer * l, size_t offset) {
         terminate("Parser reached end!\n");
     }
     return &l->tokens.data[self->index + offset];
-    //return da_Token_get_ref(&l->tokens, self->index + offset);
 }
 
 // Eat a token (advance the position in the token stream) and return the token
@@ -188,7 +187,6 @@ int _ParserParseFunctionCallExpressionArgumentList(Parser * self, Lexer * l, da_
     if(!expression) return 0;
     // TODO: I think this can be a do-while (27/03/2026 @ 22:13)
     DA_PUSHBACK(list, expression, a);
-    //da_AstNode_pushback(list, &expression, a);
 
     while(_ParserEat(self, l, L_Comma)) {
         expression = _ParserParseExpression(self, l, a);
@@ -215,7 +213,6 @@ AstNode * _ParserParseFunctionCallExpression(Parser * self, Lexer * l, allocator
 
     da_AstNode args;
     DA_INIT(&args);
-    //da_AstNode_new(&args);
     _ParserParseFunctionCallExpressionArgumentList(self, l, &args, a);
 
     if(!_ParserEat(self, l, L_RBra)) {

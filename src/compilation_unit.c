@@ -82,6 +82,7 @@ StringSlice CompilationUnitGetLine(CompilationUnit *self, allocator_t * a) {
     switch(self->type) {
         case COMPILATION_UNIT_FILE: return _CompilationUnitFileGetLine(self, a); break;
         case COMPILATION_UNIT_STRING: return _CompilationUnitStringGetLine(self, a); break;
+        default: return (StringSlice) { 0 };
     }
 }
 

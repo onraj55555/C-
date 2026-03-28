@@ -15,9 +15,8 @@ void compile_code(char * main_file, char * output) {
     command_append(command, "src/dynamic_array.c");
     command_append(command, "src/parser.c");
     command_append(command, "src/ast.c");
-    command_append(command, "src/da_string.c");
     command_append(command, "-ggdb");
-    //command_enable_all_errors(command);
+    command_enable_all_errors(command);
     command_set_output_file(command, output);
     command_execute(command);
     command_has_exited_normally(command);

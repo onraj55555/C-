@@ -18,7 +18,6 @@
 void LexerNew(Lexer *self) {
     self->has_error = 0;
     DA_INIT(&self->tokens);
-    //da_Token_new(&self->tokens);
 }
 
 /*
@@ -39,7 +38,6 @@ void _LexerAddToken(Lexer * self, TokenType type, void * data, uint64_t line, ui
     t.index = index;
     t.path = path;
     DA_PUSHBACK(&self->tokens, t, a);
-    //da_Token_pushback(&self->tokens, &t, a);
 }
 
 void _LexerError(Lexer * self, const char * path, uint64_t line, uint64_t index, const char * fmt, ...) {
@@ -187,7 +185,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
 
                     int has_dot = 0;
                     c = StringSliceAt(line_data, index + sb.size);
-                    while(c >= '0' && c <= '9' || c == '.') {
+                    while((c >= '0' && c <= '9') || c == '.') {
                         if(c == '.') has_dot++;
                         StringBuilderPushChar(&sb, c, a);
                         c = StringSliceAt(line_data, index + sb.size);
@@ -221,7 +219,7 @@ void _LexerLexLine(Lexer * self, StringSlice * line_data, uint64_t line, Compila
 
                 int has_dot = 0;
                 c = StringSliceAt(line_data, index + sb.size);
-                while(c >= '0' && c <= '9' || c == '.') {
+                while((c >= '0' && c <= '9') || c == '.') {
                     if(c == '.') has_dot++;
                     StringBuilderPushChar(&sb, c, a);
                     c = StringSliceAt(line_data, index + sb.size);
@@ -349,7 +347,6 @@ void LexerTokenise(Lexer *self, CompilationUnit *cu, allocator_t * a) {
     eof.line = 0;
     eof.index = 0;
     DA_PUSHBACK(&self->tokens, eof, a);
-    //da_Token_pushback(&self->tokens, &eof, a);
 }
 
 char * _TokenTypeToString(TokenType type) {
